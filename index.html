@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Kit Command Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Minecraft Kit Command Generator</h1>
+    <p class="subtitle">Java Edition 1.21.11 &middot; /item replace entity @p &middot; component syntax</p>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="title-inventory">
+      <h2 class="panel-title" id="title-inventory">Kit Inventory</h2>
+      <div class="main-layout">
+        <div class="preview-layout">
+          <div class="preview-wrap" id="preview-wrap">
+            <div class="preview-left">
+              <div class="preview-col" id="preview-armor" aria-label="Armor preview"></div>
+              <div class="preview-col" id="preview-hand" aria-label="Mainhand preview"></div>
+              <div class="preview-col" id="preview-offhand" aria-label="Offhand preview"></div>
+            </div>
+            <div class="preview-right">
+              <div class="preview-inv" id="preview-inv" aria-label="Main inventory preview"></div>
+              <div class="preview-inv hotbar-row" id="preview-hotbar" aria-label="Hotbar preview"></div>
+            </div>
+          </div>
+          <div class="preview-status-wrap">
+            <span class="status" id="preview-status">Click a slot to edit it.</span>
+          </div>
+        </div>
+
+        <div class="editor-panel">
+          <div class="editor-header">
+            <h3 class="sub-title">Edit Slot</h3>
+            <div class="selected-slot" id="selected-slot-label">No slot selected</div>
+          </div>
+
+          <div class="editor-fields">
+            <div class="field-group">
+              <label for="in-id">Item</label>
+              <div class="picker editor-picker">
+                <input type="text" id="in-id" class="in-id" placeholder="diamond_sword" autocomplete="off" spellcheck="false">
+                <button id="picker-toggle" class="picker-toggle" type="button" aria-label="Open item picker" aria-expanded="false" disabled>▾</button>
+                <div class="picker-panel" id="picker-panel" hidden>
+                  <input type="text" id="picker-search" class="picker-search" placeholder="Search items..." autocomplete="off" spellcheck="false">
+                  <div class="picker-list" id="picker-list"></div>
+                  <div class="picker-note" id="picker-note"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="in-count">Count</label>
+              <input type="number" id="in-count" class="in-count" min="1" max="64" value="1">
+            </div>
+
+            <div class="field-group">
+              <label for="in-name">Custom Display Name</label>
+              <input type="text" id="in-name" class="in-name" placeholder='e.g. "Excalibur" or Excalibur'>
+            </div>
+
+            <div class="field-group">
+              <label for="ench-preset">Enchantment Preset</label>
+              <div class="comp-add-row">
+                <select id="ench-preset" class="comp-select" disabled>
+                  <option value="">Select a preset...</option>
+                </select>
+                <button id="ench-preset-btn" class="btn btn-comp-add" type="button" disabled>Apply</button>
+              </div>
+              <p class="preset-hint" id="preset-hint"></p>
+            </div>
+
+            <div class="field-group">
+              <label for="comp-add">Add Component</label>
+              <div class="comp-add-row">
+                <select id="comp-add" class="comp-select" disabled>
+                  <option value="">Select a component...</option>
+                </select>
+                <button id="comp-add-btn" class="btn btn-comp-add" type="button" disabled>Add</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Components</label>
+              <div class="comp-list" id="comp-list"></div>
+              <p class="comp-empty" id="comp-empty">No components added yet.</p>
+            </div>
+
+            <div class="editor-actions">
+              <button id="btn-clear-slot" class="btn" type="button">Clear Slot</button>
+              <button id="btn-clear-all" class="btn" type="button">Clear All</button>
+              <button id="btn-generate" class="btn btn-generate" type="button">Generate Commands</button>
+              <button id="btn-copy" class="btn" type="button">Copy to Clipboard</button>
+            </div>
+            <p class="status" id="status">Click a slot in the inventory to start editing it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="title-output">
+      <div class="output-toolbar">
+        <div>
+          <h2 class="panel-title" id="title-output">Generated Commands</h2>
+        </div>
+      </div>
+      <textarea id="output" class="output" readonly spellcheck="false" aria-label="Generated commands"
+        placeholder="Commands will appear here..."></textarea>
+    </section>
+  </main>
+
+  <div id="tooltip" class="tooltip" hidden></div>
+
+  <script src="items.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
