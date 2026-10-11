@@ -233,6 +233,12 @@
 
   var editorControls = [inId, inCount, inName, enchPreset, enchPresetBtn, compAdd, compAddBtn];
 
+  /* Output format: 'plain' = one /item replace line per slot,
+     'one' = a single /summon falling_block "one command" (Command Block Assembler style). */
+  var outputMode = 'plain';
+  var modePlain = document.getElementById('mode-plain');
+  var modeOne = document.getElementById('mode-one');
+
   /* ---------- Kit data ---------- */
 
   var kit = {};
@@ -318,10 +324,14 @@
         var levels = c.entries
           .filter(function (e) { return e.id; })
           .map(function (e) { return "'" + e.id + "':" + clampInt(e.level, 1, 255, 1); });
-        return levels.length ? c.type + '={levels:{' + levels.join(',') + '}}' : '';
+        // 1.21.5+ flattening: enchantments is a direct map, no `levels` wrapper.
+        return levels.length ? c.type + '={' + levels.join(',') + '}' : '';
       }
       case 'unbreakable':
-        return c.show ? 'unbreakable={}' : 'unbreakable={show_in_tooltip:false}';
+        // 1.21.5+ moved show_in_tooltip out of unbreakable into tooltip_display.
+        return c.show
+          ? 'unbreakable={}'
+          : 'unbreakable={},tooltip_display={hidden_components:["minecraft:unbreakable"]}';
       case 'lore': {
         var lines = c.lines
           .map(function (l) { return String(l).trim(); })
@@ -336,10 +346,11 @@
           if (m.slot && m.slot !== 'any') s += ',slot:"' + m.slot + '"';
           return s + '}';
         });
-        return mods.length ? 'attribute_modifiers={modifiers:[' + mods.join(',') + ']}' : '';
+        return mods.length ? 'attribute_modifiers=[' + mods.join(',') + ']' : '';
       }
       case 'dyed_color':
-        return 'dyed_color={rgb:' + hexToInt(c.rgb) + '}';
+        // 1.21.5+ flattening: dyed_color is a bare RGB int, not {rgb:...}.
+        return 'dyed_color=' + hexToInt(c.rgb);
       case 'food':
         return 'food={nutrition:' + clampInt(c.nutrition, 0, 20, 0) +
           ',saturation:' + numText(c.saturation) +
@@ -768,10 +779,7 @@
     if (raw.indexOf('enchantments') === -1) return [];
     var open = raw.indexOf('{', raw.indexOf('enchantments'));
     if (open === -1) return [];
-    var lv = raw.indexOf('levels', open);
-    var innerOpen = lv === -1 ? -1 : raw.indexOf('{', lv);
-    if (innerOpen === -1) return [];
-    var content = takeBraced(raw, innerOpen);
+    var content = takeBraced(raw, open);
     var pairs = [];
     var re = /(?:['\"])?([A-Za-z0-9_.:\-]+)(?:['\"])?\s*:\s*(\d+)/g;
     var m;
@@ -1164,16 +1172,57 @@
     return lines;
   }
 
+  var CLEANUP_SETBLOCK = 'setblock ~ ~1 ~ command_block{Command:"fill ~ ~ ~ ~ ~-3 ~ air",auto:1}';
+  var CLEANUP_KILL = 'execute align xyz run kill @e[type=command_block_minecart,dy=0]';
+
+  /* Wrap the per-slot /item replace commands into a single /summon falling_block
+     "one command" line. When it lands, a powered activator rail triggers a chain
+     of command block minecarts, each running one command, then self-destructs. */
+  function buildOneCommand(lines) {
+    if (!lines.length) return '';
+    var passengers = ['{id:falling_block,BlockState:{Name:activator_rail}}'];
+    lines.forEach(function (cmd) {
+      passengers.push('{id:command_block_minecart,Command:"' + escapeDouble(cmd) + '"}');
+    });
+    passengers.push('{id:command_block_minecart,Command:"' + escapeDouble(CLEANUP_SETBLOCK) + '"}');
+    passengers.push('{id:command_block_minecart,Command:"' + escapeDouble(CLEANUP_KILL) + '"}');
+    return '/summon falling_block ~ ~1 ~ {BlockState:{Name:redstone_block},Passengers:[' +
+      passengers.join(',') + ']}';
+  }
+
+  function currentOutput() {
+    var lines = buildCommands();
+    return {
+      text: outputMode === 'one' ? buildOneCommand(lines) : lines.join('\n'),
+      count: lines.length
+    };
+  }
+
   function writeOutput() {
-    output.value = buildCommands().join('\n');
+    output.value = currentOutput().text;
   }
 
   function generate() {
-    var lines = buildCommands();
-    output.value = lines.join('\n');
-    statusEl.textContent = lines.length
-      ? lines.length + ' command' + (lines.length === 1 ? '' : 's') + ' generated'
+    var out = currentOutput();
+    statusEl.textContent = out.count
+      ? (outputMode === 'one'
+          ? 'One command generated (falling-block assembler)'
+          : out.count + ' command' + (out.count === 1 ? '' : 's') + ' generated')
       : 'No slots with an Item set yet.';
+  }
+
+  function switchOutputMode(mode) {
+    if (mode !== 'plain' && mode !== 'one') return;
+    outputMode = mode;
+    if (modePlain) {
+      modePlain.classList.toggle('mode-on', mode === 'plain');
+      modePlain.setAttribute('aria-pressed', mode === 'plain' ? 'true' : 'false');
+    }
+    if (modeOne) {
+      modeOne.classList.toggle('mode-on', mode === 'one');
+      modeOne.setAttribute('aria-pressed', mode === 'one' ? 'true' : 'false');
+    }
+    generate();
   }
 
   /* ---------- Copy ---------- */
@@ -1373,6 +1422,8 @@
   btnCopy.addEventListener('click', copyOutput);
   btnClearSlot.addEventListener('click', clearSlot);
   btnClearAll.addEventListener('click', clearAll);
+  if (modePlain) modePlain.addEventListener('click', function () { switchOutputMode('plain'); });
+  if (modeOne) modeOne.addEventListener('click', function () { switchOutputMode('one'); });
 
   document.addEventListener('click', onDocClick);
   document.addEventListener('keydown', onDocKeydown);

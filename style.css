@@ -491,6 +491,45 @@ main {
   flex-wrap: wrap;
 }
 
+.mode-toggle {
+  display: inline-flex;
+}
+
+.mode-btn {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 1px 1px 0 #2f2f2f;
+  background: #6f6f6f;
+  border: 2px solid;
+  border-color: #d9d9d9 #1f1f1f #1f1f1f #d9d9d9;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.mode-btn:hover {
+  background: #7d7d7d;
+}
+
+.mode-btn:active {
+  border-color: #1f1f1f #d9d9d9 #d9d9d9 #1f1f1f;
+  background: #5a5a5a;
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+}
+
+.mode-btn.mode-on {
+  background: #3eaf3e;
+  border-color: #aaffaa #174f17 #174f17 #aaffaa;
+  text-shadow: 1px 1px 0 #174f17;
+}
+
+.mode-btn.mode-on:hover {
+  background: #4cc24c;
+}
+
 .btn {
   font-family: var(--font-head);
   font-size: 12px;
@@ -612,6 +651,10 @@ footer {
 
   .toolbar-actions {
     width: 100%;
+  }
+
+  .toolbar-actions .mode-btn {
+    flex: 1;
   }
 
   .btn {
