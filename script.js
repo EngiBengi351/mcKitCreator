@@ -21,7 +21,6 @@
         { name: 'armor.feet', label: 'Boots' }
       ]
     },
-    { target: 'preview-hand', slots: [{ name: 'weapon.mainhand', label: 'Main Hand' }] },
     { target: 'preview-offhand', slots: [{ name: 'weapon.offhand', label: 'Off Hand' }] },
     { target: 'preview-inv', slots: makeRange('inventory.', 27, 'Inventory Slot ') },
     { target: 'preview-hotbar', slots: makeRange('hotbar.', 9, 'Hotbar Slot ') }
